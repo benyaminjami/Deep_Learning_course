@@ -29,9 +29,9 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test, model, sess, log_file)
     val_log_file = './logs/' + log_file + '/val/'
     test_log_file = './logs/' + log_file + '/test/'
 
-    train_writer = 
-    val_writer = 
-    test_writer = 
+    train_writer = tf.summary.FileWriter(logdir=train_log_file, graph=sess.graph)
+    val_writer = tf.summary.FileWriter(logdir=val_log_file, graph=sess.graph)
+    test_writer = tf.summary.FileWriter(logdir=test_log_file, graph=sess.graph)
 
     ####################################################################
     #                         END OF YOUR CODE                         #
@@ -52,7 +52,10 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test, model, sess, log_file)
             # Use update method of dictionary to feed model placeholders            #
             # Use batch range defined above  pointing to the range of current batch #
             #########################################################################
-
+            train_feed_dict.update({
+                                    model.placeholders['batch_images']:x_train[batch_range],
+                                    model.placeholders['batch_labels']:y_train[batch_range]
+                                    })
             #########################################################################
             #                         END OF YOUR CODE                              #
             #########################################################################
@@ -69,11 +72,14 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test, model, sess, log_file)
         # Use add_summary method of train_writer to add result of merged_summary evaluation  #
         # Note to set global step of summary based on epoch number                           #
         ######################################################################################
-
-        ...
+        train_feed_dict.update(
+                            {model.placeholders['batch_images']:x_train,
+                             model.placeholders['batch_labels']:y_train
+                            })
         
-        train_summary, train_loss, train_acc = sess.run(...)
-        train_writer.add_summary(..., global_step=epoch + 1)
+        
+        train_summary, train_loss, train_acc = sess.run([merged_summary, model.loss, model.acc], feed_dict=train_feed_dict)
+        train_writer.add_summary(train_summary, global_step=epoch + 1)
 
         ######################################################################################
         #                                   END OF YOUR CODE                                 #
@@ -89,10 +95,13 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test, model, sess, log_file)
         # Note to set global step of summary based on epoch number                           #
         ######################################################################################
 
-        ...
+        val_feed_dict.update(
+                            {model.placeholders['batch_images']:x_val,
+                             model.placeholders['batch_labels']:y_val
+                            })
         
-        val_summary, val_loss = sess.run(...)
-        val_writer.add_summary(..., global_step=...)
+        val_summary, val_loss = sess.run([merged_summary, model.loss], feed_dict=val_feed_dict)
+        val_writer.add_summary(val_summary, global_step=epoch+1)
 
         ######################################################################################
         #                                   END OF YOUR CODE                                 #
@@ -108,9 +117,13 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test, model, sess, log_file)
         # Note to set global step of summary based on epoch number                           #
         ######################################################################################
         
-        ...
+        test_feed_dict.update(
+                            {model.placeholders['batch_images']:x_test,
+                             model.placeholders['batch_labels']:y_test
+                            })
         
-        test_writer.add_summary(...)
+        test_summary = sess.run(merged_summary, feed_dict=test_feed_dict)
+        test_writer.add_summary(test_summary, global_step=epoch+1)
 
         ######################################################################################
         #                                   END OF YOUR CODE                                 #
@@ -128,9 +141,12 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test, model, sess, log_file)
     # Run session just on loss and accuracy of model              #
     ###############################################################
     
-    ...
-    
-    test_loss, test_acc = ...
+    test_feed_dict.update(
+                            {model.placeholders['batch_images']:x_test,
+                             model.placeholders['batch_labels']:y_test
+                            })
+        
+    test_loss, test_acc = sess.run([model.loss, model.acc], feed_dict=test_feed_dict)
 
     ###############################################################
     #                        END OF YOUR CODE                     #

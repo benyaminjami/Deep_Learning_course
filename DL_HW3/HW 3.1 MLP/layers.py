@@ -1,10 +1,11 @@
 import tensorflow as tf
 
-
 class DenseLayer(object):
     def __init__(self, input_dim, output_dim, act,
                  weight_initializer, bias_initializer, stddev=None):
-        super(DenseLayer, self).__init__()
+#         super(DenseLayer, self).__init__()
+        object.__init__(self)
+
         # save input output dimensions
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -43,7 +44,7 @@ class DenseLayer(object):
         #   4. Save final result in transformed variable     #
         ######################################################
 
-        transformed = 
+        transformed = self.act(tf.add(tf.matmul(inputs, self.vars['weight']), self.vars['bias']))
 
         ######################################################
         #                 END OF YOUR CODE                   #

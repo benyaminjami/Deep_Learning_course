@@ -1,16 +1,14 @@
 import tensorflow as tf
 from layers import DenseLayer
 
-
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-
 
 class Dense(object):
     def __init__(self, num_hidden, weight_initializer, bias_initializer,
                  act=tf.nn.sigmoid, logging=False, stddev=None):
 
-        super(Dense, self).__init__()
+        object.__init__(self)
 
         # saving batch info in placeholders
         self.placeholders = {'batch_images': tf.placeholder(shape=[None, 32 * 32], dtype=tf.float32),
@@ -41,7 +39,7 @@ class Dense(object):
             # Append output of current layer to the self.activations list            #
             ##########################################################################
 
-            self.activations.append( ... )
+            self.activations.append( layer.__call__(self.activations[-1]))
 
             ##########################################################################
             #                             END OF YOUR CODE                           #
@@ -65,8 +63,8 @@ class Dense(object):
         # Apply optimizer on self.loss to minimize it and save it on self.training      #
         #################################################################################
 
-        self.optimizer = 
-        self.training = 
+        self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=FLAGS.learning_rate)
+        self.training = self.optimizer.minimize(self.loss)
 
         #################################################################################
         #                             END OF YOUR CODE                                  #
@@ -81,8 +79,8 @@ class Dense(object):
             # Example: Like bias_1 (bias of layer 1) or weight_2 (weight of layer 2) #
             ##########################################################################
 
-            tf.summary.histogram(name='bias_{}'.format(i + 1), values= ...)
-            tf.summary.histogram(name='weight_{}'.format(i + 1), values= ...)
+            tf.summary.histogram(name='bias_{}'.format(i + 1), values= layer.vars['bias'])
+            tf.summary.histogram(name='weight_{}'.format(i + 1), values= layer.vars['weight'])
 
             ##########################################################################
             #                            END OF YOUR CODE                            #
@@ -106,7 +104,8 @@ class Dense(object):
             #   3. Activation function                            #
             #######################################################
 
-            layer = 
+            layer = DenseLayer(self.num_hidden[i-1], self.num_hidden[i], act,
+                               self.weight_initializer, self.bias_initializer, stddev=self.stddev)
 
             ########################################################
             #                   END OF YOUR CODE                   #
@@ -128,16 +127,21 @@ class Dense(object):
         #################################################################################################
 
         # cross-entropy loss over logits and labels
-        batch_loss = 
+        batch_loss = tf.nn.softmax_cross_entropy_with_logits_v2(
+                            labels=self.placeholders['batch_labels'],
+                            logits=self.output)
 
         # L2 regularization on weights
-        l2_loss = FLAGS.weight_decay * ...
+        l2_loss = FLAGS.weight_decay * (tf.nn.l2_loss(t=self.layers[0].vars['weight']) +
+                                        tf.nn.l2_loss(t=self.layers[1].vars['weight']))
 
         # compute average of batch loss plus l2 loss
-        total_loss = 
+        total_loss = tf.reduce_mean(batch_loss) + l2_loss
 
         # save summary scalar
-        tf.summary.scalar('loss', ...)
+        tf.summary.scalar('loss', total_loss)
+        
+        avg_loss = total_loss
 
         #################################################################################################
         #                                        END OF YOUR CODE                                       #
@@ -156,16 +160,16 @@ class Dense(object):
         #################################################################################################
 
         # prediction of output on batch
-        batch_predictions = 
+        batch_predictions = tf.argmax(self.output, axis=1)
 
         # true labels
-        correct_predictions = 
+        correct_predictions = tf.argmax(self.placeholders['batch_labels'], axis=1)
 
         # compute accuracy using reduce_mean
-        avg_acc = 
+        avg_acc = tf.reduce_mean(tf.cast(tf.equal(batch_predictions, correct_predictions), tf.float32))
 
         # save summary scalar
-        tf.summary.scalar('acc', ...)
+        tf.summary.scalar('acc', avg_acc)
 
         #################################################################################################
         #                                        END OF YOUR CODE                                       #

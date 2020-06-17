@@ -59,7 +59,8 @@ def glorot_initializer(shape, name=None):
     # Feed the initial value to tf.Variable                                             #
     # Return the defined tf.Variable                                                    #
     #####################################################################################
-
+    sd = np.sqrt(6/(shape[0] + shape[1]))
+    return tf.Variable(tf.random_uniform(shape=shape, minval=-sd, maxval=sd), name=name)
     #####################################################################################
     #                                 END OF YOUR CODE                                  #
     #####################################################################################
@@ -73,7 +74,7 @@ def normal_initializer(shape, stddev, name=None):
     # Feed the initial value to a tf.Variable           #
     # Return the defined tf.Variable                    #
     #####################################################
-
+    return tf.Variable(tf.truncated_normal(shape=shape, mean=0, stddev=stddev), name=name)
     #####################################################
     #                 END OF YOUR CODE                  #
     #####################################################
@@ -86,7 +87,7 @@ def zero_initializer(shape, name=None):
     # Feed the initial value to a tf.Variable #
     # Return the defined tf.Variable          #
     ###########################################
-
+    return tf.Variable(tf.zeros(shape=shape), name=name)
     ###########################################
     #           END OF YOUR CODE              #
     ###########################################
